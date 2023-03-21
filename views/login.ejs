@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%- include('./common/head'); %>
+
+    <body>
+        <%- include('./common/nav'); %>
+
+        <div class="box">
+            <h1 class="mt-5">Log in</h1>
+            <form action="" method="post">
+                <label for="username">Username:</label>
+                <input type="text" name="username" id="username">
+                <label for="pwd">Password:</label>
+                <input type="password" name="pwd" id="pwd" required>
+                <input type="checkbox" id="pwd-toggle" onclick="showPassword()">Show password
+                <input type="submit" value="Log in">
+            </form>
+        </div>
+
+        <%- include('./common/footer'); %>
+
+        <script>
+            function showPassword() {
+                var toggle = document.getElementById("pwd");
+                if (toggle.type === "password") {
+                    toggle.type = "text";
+                } else {
+                    toggle.type = "password";
+                }
+            }
+        </script>
+
+    </body>
+</html>
