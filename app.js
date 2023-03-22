@@ -32,10 +32,10 @@ connection.connect(function(err) {
 });
 
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
-let validationObject = [
+const validationObject = [
+    check("username").trim().escape(),
     check("email").trim().isEmail().escape(),
-    check("username").exists().trim().escape(),
-    check("password").exists().trim().escape(),
+    check("password").trim().escape()
 ];
 
 const app = express();
@@ -54,14 +54,15 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", urlencodedParser, validationObject, (req, res) => {
-
+    console.log(req.body);
     console.log(req.body.username);
     console.log(req.body.password);
     const errors = validationResult(req); // validate content
+    console.log(errors);
     // TODO: check for non-empty errors and return error if so
 
     // perfom query
-    const query = "INSERT INTO users (username, email, pwd) VALUES (?, ?, ?);";
+    const query = "INSERT INTO users (username, email, pwd) VALUES (?, ?, ?)";
     connection.query(
         query,
         [req.body.username, req.body.email, req.body.password],
