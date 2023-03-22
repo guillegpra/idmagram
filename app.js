@@ -1,6 +1,7 @@
 const express = require("express");
 const mysql = require("mysql");
 const bodyParser = require("body-parser");
+const { check, validationResult } = require("express-validator");
 // const session = require("express-session");
 // const path = require("path");
 
@@ -30,6 +31,13 @@ connection.connect(function(err) {
     }
 });
 
+const urlencodedParser = bodyParser.urlencoded({ extended: false });
+let validationObject = [
+    check("email").trim().isEmail().escape(),
+    check("username").exists().trim().escape(),
+    check("password").exists().trim().escape(),
+];
+
 const app = express();
 
 app.set("view engine", "ejs");
@@ -45,10 +53,34 @@ app.get("/register", (req, res) => {
     });
 });
 
-app.post("/register", (req, res) => {
-    // register the new user and redirect them to the log-in page
+app.post("/register", urlencodedParser, validationObject, (req, res) => {
+
     console.log(req.body.username);
     console.log(req.body.password);
+    const errors = validationResult(req); // validate content
+    // TODO: check for non-empty errors and return error if so
+
+    // perfom query
+    const query = "INSERT INTO users (username, email, pwd) VALUES (?, ?, ?);";
+    connection.query(
+        query,
+        [req.body.username, req.body.email, req.body.password],
+        (err, result) => {
+            console.log("Query results: " + result);
+            if (err) {
+                console.log("Error performing query: " + err);
+                res.render("register", {
+                    title: "Create an account"
+                }); // TODO: add message in template and send it here as a parameter
+            }
+            else {
+                console.log("User created");
+                res.render("login", {
+                    title: "Log in"
+                }); // TODO: add message in template and send it here as a parameter
+            }
+        }
+    );
 });
 
 /* ------- Log in ------- */
