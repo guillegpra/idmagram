@@ -6,9 +6,9 @@ CREATE DATABASE IF NOT EXISTS image_sharing_app;
 USE image_sharing_app;
 
 CREATE TABLE users (
-    id int(11) NOT NULL,
-    username varchar(512) NOT NULL,
-    email varchar(512) NOT NULL,
+    id int(11) NOT NULL AUTO_INCREMENT,
+    username varchar(512) NOT NULL UNIQUE,
+    email varchar(512) NOT NULL UNIQUE,
     pwd varchar(256) NOT NULL,
     first_name varchar(255) DEFAULT NULL,
     last_name varchar(255) DEFAULT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE photos (
-    id int(11) NOT NULL,
+    id int(11) NOT NULL AUTO_INCREMENT,
     caption varchar(512) DEFAULT NULL,
     alt_text varchar(512) DEFAULT NULL,
     user_id int(11) DEFAULT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE photos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE comments (
-    id int(11) NOT NULL,
+    id int(11) NOT NULL AUTO_INCREMENT,
     user_id int(11) NOT NULL,
     photo_id int(11) NOT NULL,
     content text NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE comments (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE likes (
-    id int(11) NOT NULL,
+    id int(11) NOT NULL AUTO_INCREMENT,
     user_id int(11) NOT NULL,
     photo_id int(11) NOT NULL,
     PRIMARY KEY (id),
