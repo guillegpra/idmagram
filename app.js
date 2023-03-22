@@ -1,5 +1,6 @@
 const express = require("express");
 const mysql = require("mysql");
+const bodyParser = require("body-parser");
 // const session = require("express-session");
 // const path = require("path");
 
@@ -34,13 +35,20 @@ const app = express();
 app.set("view engine", "ejs");
 // app.set("views", "pages");
 
+app.use(express.static('static')); // for static content
+
 /* ------- Register an user ------- */
 app.get("/register", (req, res) => {
     // register webpage
+    res.render("register", {
+        title: "Create an account"
+    });
 });
 
 app.post("/register", (req, res) => {
     // register the new user and redirect them to the log-in page
+    console.log(req.body.username);
+    console.log(req.body.password);
 });
 
 /* ------- Log in ------- */
