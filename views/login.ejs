@@ -4,16 +4,26 @@
 
     <body>
         <%- include('./common/nav'); %>
-
-        <div class="box">
-            <h1 class="mt-5">Log in</h1>
+        
+        <div class="login px-5">
+            <h1>Log in</h1>
             <form action="" method="post">
-                <label for="username">Username:</label>
-                <input type="text" name="username" id="username">
-                <label for="pwd">Password:</label>
-                <input type="password" name="pwd" id="pwd" required>
-                <input type="checkbox" id="pwd-toggle" onclick="showPassword()">Show password
-                <input type="submit" value="Log in">
+                <div class="form-group pt-3">
+                    <label for="username">Username:</label>
+                    <input type="text" class="form-control" name="username" id="username" placeholder="Username">
+                </div>
+
+                <div class="form-group pt-2">
+                    <label for="pwd">Password:</label>
+                    <input type="password" class="form-control" name="pwd" id="pwd" placeholder="Password" required>
+                </div>
+
+                <div class="form-check pt-2">
+                    <input type="checkbox" class="form-check-input" id="pwd-toggle" onclick="showPassword()">
+                    <label class="form-check-label" for="pwd-toggle">Show password</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary my-2">Log in</button>
             </form>
         </div>
 

@@ -1,14 +1,25 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top px-5">
     <a href="/" class="navbar-brand">
-        Instagram Copycat
+        Idmagram
     </a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navtab">
         <span class="navbar-toggler-icon"></span>
     </button>
-
     <div class="collapse navbar-collapse" id="navtab">
         <ul class="navbar-nav ms-auto">
+            <% if (title === "Log in" || title === "Create an account") { %>
+
+            <li class="nav-item active">
+                <a href="/login" class="nav-link">Log in</a>
+            </li>
+
+            <li class="nav-item">
+                <a href="/register" class="nav-link">Create an account</a>
+            </li>
+
+            <% } else { %>
+
             <li class="nav-item">
                 <a href="" class="nav-link">Upload</a>
             </li>
@@ -16,6 +27,8 @@
             <li class="nav-item">
                 <a href="" class="nav-link">Profile</a>
             </li>
+
+            <% } %>
         </ul>
     </div>
 </nav>
