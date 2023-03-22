@@ -18,8 +18,10 @@
     },
     "homepage": "https://github.com/guillegpra/image-sharing-app#readme",
     "dependencies": {
+        "bootstrap": "^5.2.3",
         "ejs": "^3.1.9",
         "express": "^4.18.2",
-        "mysql": "^2.18.1"
+        "mysql": "^2.18.1",
+        "nodemon": "^2.0.21"
     }
 }
