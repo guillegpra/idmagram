@@ -10,8 +10,7 @@ CREATE TABLE users (
     username varchar(512) NOT NULL UNIQUE,
     email varchar(512) NOT NULL UNIQUE,
     pwd varchar(256) NOT NULL,
-    first_name varchar(255) DEFAULT NULL,
-    last_name varchar(255) DEFAULT NULL,
+    full_name varchar(255) DEFAULT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -48,10 +47,10 @@ CREATE TABLE likes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO users
-VALUES (1, 'lewis', 'lewis@tcd.ie', 'lewispwd', 'Hewis', 'Hamilton');
+VALUES (1, 'lewis', 'lewis@tcd.ie', 'lewispwd', 'Hewis Hamilton');
 
 INSERT INTO users
-VALUES (2, 'anna', 'anna@tcd.ie', 'annapwd', 'Anna', 'Stone');
+VALUES (2, 'anna', 'anna@tcd.ie', 'annapwd', 'Anna Stone');
 
 INSERT INTO photos (id, caption, alt_text, user_id)
 VALUES (1, 'hello', 'photo', 1);

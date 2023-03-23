@@ -49,35 +49,41 @@ app.use(express.static('static')); // for static content
 app.get("/register", (req, res) => {
     // register webpage
     res.render("register", {
-        title: "Create an account"
+        title: "Create an account",
+        error_message: ""
     });
 });
 
 app.post("/register", urlencodedParser, validationObject, (req, res) => {
     console.log(req.body);
-    console.log(req.body.username);
-    console.log(req.body.password);
+
     const errors = validationResult(req); // validate content
     console.log(errors);
     // TODO: check for non-empty errors and return error if so
+    if (!errors.isEmpty()) {
+        console.log("errors detected in form");
+        return;
+    }
 
     // perfom query
-    const query = "INSERT INTO users (username, email, pwd) VALUES (?, ?, ?)";
+    const query = "INSERT INTO users (username, email, pwd, full_name) VALUES (?, ?, ?, ?)";
     connection.query(
         query,
-        [req.body.username, req.body.email, req.body.password],
+        [req.body.username, req.body.email, req.body.password, req.body.full_name],
         (err, result) => {
             console.log("Query results: " + result);
             if (err) {
                 console.log("Error performing query: " + err);
                 res.render("register", {
-                    title: "Create an account"
-                }); // TODO: add message in template and send it here as a parameter
+                    title: "Create an account",
+                    error_message: "&#9432; Either the username or email already exists in our database. Use another one."
+                });
             }
             else {
                 console.log("User created");
                 res.render("login", {
-                    title: "Log in"
+                    title: "Log in",
+                    success_message: "User created successfully! Please log in."
                 }); // TODO: add message in template and send it here as a parameter
             }
         }
@@ -88,7 +94,8 @@ app.post("/register", urlencodedParser, validationObject, (req, res) => {
 app.get("/login", (_req, res) => {
     // login webpage
     res.render("login", {
-        title: "Log in"
+        title: "Log in",
+        success_message: ""
     });
 });
 
