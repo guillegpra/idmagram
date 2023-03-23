@@ -1,36 +1,69 @@
 const express = require("express");
-const mysql = require("mysql");
+// const mysql = require("mysql");
 const bodyParser = require("body-parser");
 const { check, validationResult } = require("express-validator");
-// const session = require("express-session");
-// const path = require("path");
+const bcrypt = require("bcrypt");
+const passport = require("passport");
+const flash = require("express-flash");
+const session = require("express-session");
+
+/* --------- Connection to database --------- */
+const { connection } = require("./database-config");
+
+/* --------- Passport --------- */
+const initializePassport = require("./passport-config");
+const { urlencoded } = require("body-parser");
+initializePassport(
+    passport, 
+    username =>  {
+        console.log("getUserByUsername");
+        console.log("username: " + username);
+        const query = 'SELECT * FROM users WHERE username = ?';
+        return connection.query(query, [username], (err, result) => {
+            if (err != null) {
+                console.log("Error performing query: " + err);
+                return null;
+            }
+            console.log("Query result: " + JSON.stringify(result[0]));
+            console.log("sending user with pwd " + result[0].pwd);
+            return result[0];
+        });
+    }, 
+    id => {
+        console.log("id: " + id);
+        const query = 'SELECT * FROM users WHERE id = "' + id + '";';
+        return connection.query(query, (err, result) => {
+            if (err != null) {
+                console.log("Error performing query: " + err);
+                return;
+            }
+
+            console.log("Query result: " + JSON.stringify(result[0]));
+            return result[0];
+        });
+    }
+);
 
 const PORT = 8000;
 
-// Create connection
-const connection = mysql.createConnection({
-    host: "localhost",
-    database: "image_sharing_app",
-    user: "root",
-    password: "your_new_password"
-});
+/* --------- Express --------- */
+const app = express();
 
-// const connection = mysql.createConnection({
-//     host: "mysql.scss.tcd.ie",
-//     database: "garcag_2223_db",
-//     user: "garcag",
-//     password: "ahFai3yu"
-// });
+app.set("view engine", "ejs");
+// app.set("views", "pages");
 
-connection.connect(function(err) {
-    if (err) {
-        console.log("Error connecting to database: " + err);
-    }
-    else {
-        console.log("Connected to database");
-    }
-});
+app.use(express.static('static')); // for static content
+app.use(flash());
+app.use(session({
+    secret: "secret",
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.urlencoded({ extended: true })); // solution for missing credentials
 
+/* --------- Validation configuration --------- */
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const validationObject = [
     check("username").trim().escape(),
@@ -38,14 +71,7 @@ const validationObject = [
     check("password").trim().escape()
 ];
 
-const app = express();
-
-app.set("view engine", "ejs");
-// app.set("views", "pages");
-
-app.use(express.static('static')); // for static content
-
-/* ------- Register an user ------- */
+/* --------- Register an user --------- */
 app.get("/register", (req, res) => {
     // register webpage
     res.render("register", {
@@ -54,43 +80,48 @@ app.get("/register", (req, res) => {
     });
 });
 
-app.post("/register", urlencodedParser, validationObject, (req, res) => {
+app.post("/register", urlencodedParser, validationObject, async (req, res) => {
     console.log(req.body);
 
-    const errors = validationResult(req); // validate content
+    // Validate content received
+    const errors = validationResult(req);
     console.log(errors);
-    // TODO: check for non-empty errors and return error if so
     if (!errors.isEmpty()) {
-        console.log("errors detected in form");
+        console.log("Errors detected in form");
         return;
     }
 
-    // perfom query
+    const hashedPassword = await bcrypt.hash(req.body.password, 10); // encrypt password
+
+    // Perfom query
     const query = "INSERT INTO users (username, email, pwd, full_name) VALUES (?, ?, ?, ?)";
     connection.query(
         query,
-        [req.body.username, req.body.email, req.body.password, req.body.full_name],
+        [req.body.username, req.body.email, hashedPassword, req.body.full_name],
         (err, result) => {
             console.log("Query results: " + result);
             if (err) {
                 console.log("Error performing query: " + err);
+                // Inform user and let them try again
                 res.render("register", {
                     title: "Create an account",
                     error_message: "&#9432; Either the username or email already exists in our database. Use another one."
                 });
             }
             else {
+                console.log(result);
                 console.log("User created");
+                // Inform user and take them to log in page
                 res.render("login", {
                     title: "Log in",
                     success_message: "User created successfully! Please log in."
-                }); // TODO: add message in template and send it here as a parameter
+                });
             }
         }
     );
 });
 
-/* ------- Log in ------- */
+/* --------- Log in --------- */
 app.get("/login", (_req, res) => {
     // login webpage
     res.render("login", {
@@ -99,20 +130,23 @@ app.get("/login", (_req, res) => {
     });
 });
 
-app.post("/login", (req, res) => {
-    // log in routine
-    // check user and pwd in database and if correct, go to main page
-    // if not correct, display message and let them try again
-});
+app.post("/login", passport.authenticate('local', {
+    successRedirect: "/", // go to main page
+    failureRedirect: "/login", // let them try again
+    failureFlash: true
+}));
 
-/* ------- Log out ------- */
+/* --------- Log out --------- */
 app.get("/logout", (req, res) => {
     // logout webpage
 });
 
-/* ------- Upload ------- */
+/* --------- Upload --------- */
 app.get("/upload", (req, res) => {
     // upload photo webpage
+    res.render("upload", {
+        title: "Upload a photo"
+    });
 });
 
 app.post("/upload", (req, res) => {
@@ -128,7 +162,7 @@ app.post("/like", (req, res) => {
     // like routine
 });
 
-/* ------- Views ------- */
+/* --------- Views --------- */
 app.get("/", (req, res) => {
     // home page
 
@@ -161,6 +195,25 @@ app.get("/photos/:id", (req, res) => {
     // the number of comments
     // SELECT COUNT(id) AS number_comments FROM comments WHERE photo_id = whatever;
 });
+
+function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    
+    res.render("login", {
+        title: "Log in",
+        success_message: ""
+    });
+}
+
+function checkNotAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return res.redirect("/");
+    }
+    
+    next();
+}
 
 app.listen(PORT, () => {
     console.log("App running in http://localhost:" + PORT);

@@ -19,6 +19,7 @@ CREATE TABLE photos (
     caption varchar(512) DEFAULT NULL,
     alt_text varchar(512) DEFAULT NULL,
     user_id int(11) DEFAULT NULL,
+    photo_path varchar(2083) NOT NULL,
   	-- number_likes int(11) NOT NULL DEFAULT '0',
     -- number_comments int(11) NOT NULL DEFAULT '0',
     date_upload datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

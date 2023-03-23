@@ -3,10 +3,12 @@
 // import bootstrap
 @import '../node_modules/bootstrap/scss/bootstrap';x
 
+/* --------- Navbar --------- */
 .navbar {
     margin-bottom: 0px;
 }
 
+/* --------- Footer --------- */
 .footer a {
     text-decoration: none;
     transition: all 0.3s ease;
@@ -16,6 +18,7 @@
     text-decoration: underline;
 }
 
+/* --------- Login ---------*/
 .login {
     width: 50%;
 }
@@ -24,10 +27,12 @@
     margin-top: 75px;
 }
 
-.success_message {
+.login .success-message, 
+.login .error-message {
     margin-bottom: -$spacer * .5;
 }
 
+/* --------- Register ---------*/
 .register {
     width: 50%;
     max-height: 100%;
@@ -42,6 +47,12 @@
     color: red;
 }
 
+/* --------- Register ---------*/
+.upload h1 {
+    margin-top: 80px;
+}
+
+/* --------- Terms & FAQs ---------*/
 .terms h1, .faqs h1 {
     margin-top: 80px;
 }
