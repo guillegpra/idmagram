@@ -1,3 +1,3 @@
-# Image Sharing App
+# Idmagram
 
-Image Sharing web app created using [Express](https://www.npmjs.com/package/express) and [MySQL](https://www.mysql.com).
+Idmagram is an image sharing web app created using [Express](https://www.npmjs.com/package/express) and [MySQL](https://www.mysql.com).
