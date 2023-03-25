@@ -10863,6 +10863,10 @@ x .navbar {
 }
 
 /* --------- Register ---------*/
+.upload {
+  width: 50%;
+}
+
 .upload h1, .upload .h1 {
   margin-top: 80px;
 }

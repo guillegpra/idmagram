@@ -7,8 +7,35 @@
 
         <div class="upload px-5">
             <h1>Upload a picture</h1>
+            <form action="/upload" method="post">
+
+                <div class="form-group pt-3">
+                    <label for="photo">Choose a photo</label>
+                    <input type="file" class="form-control-file" name="photo" id="photo" aria-describedby="photoHelp" accept=".jpg,.jpeg,.png,.gif">
+                    <p><small id="photoHelp" class="form-text text-muted">Accepted file types are .jpg, .png, .gif, not exceeding 2MB in file size</small></p>
+                </div>
+
+                <% if(messages.error){%>
+                <div class="error-message alert alert-danger" role="alert">
+                    <%= messages.error %>
+                </div>
+                <%}%>
+
+                <div class="form-group">
+                    <label for="caption">Caption</label>
+                    <input type="text" class="form-control" name="caption" id="caption" placeholder="Write a caption...">
+                </div>
+
+                <div class="form-group pt-2">
+                    <label for="alt_text">Write alt text</label>
+                    <input type="text" class="form-control" name="alt_text" id="alt_text" placeholder="Write alt text...">
+                </div>
+
+                <button type="submit" class="btn btn-primary my-3">Upload</button>
+            </form>
         </div>
+        
+        <%- include('./common/footer'); %>
     </body>
 
-    <%- include('./common/footer'); %>
 </html>

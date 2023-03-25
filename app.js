@@ -6,6 +6,9 @@ const bcrypt = require("bcrypt");
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
+const fileUpload = require("express_fileupload");
+const sharp = require("sharp");
+const fs = require("fs");
 
 /* --------- Connection to database --------- */
 const { connection } = require("./database-config");
@@ -53,15 +56,32 @@ app.set("view engine", "ejs");
 // app.set("views", "pages");
 
 app.use(express.static('static')); // for static content
+
 app.use(flash());
+
+// session
 app.use(session({
     secret: "secret",
     resave: false,
     saveUninitialized: false
 }));
+
+// passport
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(express.urlencoded({ extended: true })); // solution for missing credentials
+app.use(express.urlencoded({ extended: true })); // solution for missing credentials error in login 
+
+// file upload
+app.use(
+    fileUpload({
+        limits: {
+            fileSize: 2000000, // Around 2MB
+        },
+        abortOnLimit: true,
+        limitHandler: fileTooBig,
+    })
+);
+const acceptedTypes = ["image/gif", "image/jpeg", "image/png"];
 
 /* --------- Validation configuration --------- */
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
@@ -142,15 +162,51 @@ app.get("/logout", (req, res) => {
 });
 
 /* --------- Upload --------- */
-app.get("/upload", (req, res) => {
+app.get("/upload", async (req, res) => {
     // upload photo webpage
     res.render("upload", {
         title: "Upload a photo"
     });
 });
 
-app.post("/upload", (req, res) => {
+app.post("/upload", async (req, res) => {
     // upload photo routine
+    const photo = req.files.photo;
+
+    if (acceptedTypes.indexOf(photo.mimetype) > -1) {
+        const imageDestinationPath = __dirname + "/static/imgs/" + photo.name;
+        const resizedImagePath = __dirname + "/static/imgs/resized/" + photo.name;
+
+        console.log(photo);
+
+        await photo.mv(imageDestinationPath).then(async () => {
+            try {
+                await sharp(imageDestinationPath)
+                .resize(750)
+                .toFile(resizedImagePath)
+                .then(() => {
+                    fs.unlink(imageDestinationPath, function (err) {
+                        if (err) throw err;
+                        console.log(imageDestinationPath + " deleted");
+                    });
+                });
+            } catch (error) {
+                console.log(error);
+            }
+
+            res.render("photo", {
+                image: "/imgs/resized/" + photo.name,
+                image_name: photo.name
+            });
+        });
+    }
+
+    else {
+        res.render("upload", {
+            title: "Upload a photo",
+            messages: { error: "Please choose an image in the supported formats." },
+        });
+    }
 });
 
 // maybe routines for commenting/liking??
