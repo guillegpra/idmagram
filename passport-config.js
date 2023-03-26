@@ -19,12 +19,12 @@ function initialize(passport, getUserByUsername, getUserById) {
                 console.log("authentication error");
                 return done(null, false, { message: "The username doesn't exist" });
             }
-    
+
             try {
                 if (await bcrypt.compare(password, user.pwd)) {
                     console.log("Logged in correctly");
                     return done(null, user);
-                } 
+                }
                 else {
                     console.log("Error logging in");
                     return done(null, false, { message: "Password incorrect" });
@@ -32,8 +32,8 @@ function initialize(passport, getUserByUsername, getUserById) {
             } catch (error) {
                 return done(error);
             }
-        }); 
-        
+        });
+
     };
 
     passport.use(new localStrategy(/* { usernameField: "username" }, */authenticateUser));

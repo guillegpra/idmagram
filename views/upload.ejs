@@ -7,11 +7,11 @@
 
         <div class="upload px-5">
             <h1>Upload a picture</h1>
-            <form action="/upload" method="post">
+            <form action="/upload" method="post" enctype="multipart/form-data">
 
                 <div class="form-group pt-3">
                     <label for="photo">Choose a photo</label>
-                    <input type="file" class="form-control-file" name="photo" id="photo" aria-describedby="photoHelp" accept=".jpg,.jpeg,.png,.gif">
+                    <input type="file" class="form-control-file" name="photo" id="photo" aria-describedby="photoHelp" accept=".jpg,.jpeg,.png,.gif" required>
                     <p><small id="photoHelp" class="form-text text-muted">Accepted file types are .jpg, .png, .gif, not exceeding 2MB in file size</small></p>
                 </div>
 
@@ -34,7 +34,7 @@
                 <button type="submit" class="btn btn-primary my-3">Upload</button>
             </form>
         </div>
-        
+
         <%- include('./common/footer'); %>
     </body>
 

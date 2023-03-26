@@ -6,7 +6,7 @@ const bcrypt = require("bcrypt");
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
-const fileUpload = require("express_fileupload");
+const fileUpload = require("express-fileupload");
 const sharp = require("sharp");
 const fs = require("fs");
 
@@ -17,8 +17,8 @@ const { connection } = require("./database-config");
 const initializePassport = require("./passport-config");
 const { urlencoded } = require("body-parser");
 initializePassport(
-    passport, 
-    username =>  {
+    passport,
+    username => {
         console.log("getUserByUsername");
         console.log("username: " + username);
         const query = 'SELECT * FROM users WHERE username = ?';
@@ -31,7 +31,7 @@ initializePassport(
             console.log("sending user with pwd " + result[0].pwd);
             return result[0];
         });
-    }, 
+    },
     id => {
         console.log("id: " + id);
         const query = 'SELECT * FROM users WHERE id = "' + id + '";';
@@ -182,21 +182,23 @@ app.post("/upload", async (req, res) => {
         await photo.mv(imageDestinationPath).then(async () => {
             try {
                 await sharp(imageDestinationPath)
-                .resize(750)
-                .toFile(resizedImagePath)
-                .then(() => {
-                    fs.unlink(imageDestinationPath, function (err) {
-                        if (err) throw err;
-                        console.log(imageDestinationPath + " deleted");
+                    .resize(750)
+                    .toFile(resizedImagePath)
+                    .then(() => {
+                        fs.unlink(imageDestinationPath, function (err) {
+                            if (err) throw err;
+                            console.log(imageDestinationPath + " deleted");
+                        });
                     });
-                });
             } catch (error) {
                 console.log(error);
             }
 
             res.render("photo", {
+                title: "Photo",
                 image: "/imgs/resized/" + photo.name,
-                image_name: photo.name
+                image_name: photo.name,
+                caption: req.body.caption
             });
         });
     }
@@ -208,6 +210,13 @@ app.post("/upload", async (req, res) => {
         });
     }
 });
+
+function fileTooBig(_req, res, _next) {
+    res.render("upload", {
+        title: "Upload a photo",
+        messages: { error: "Filesize too large." },
+    });
+}
 
 // maybe routines for commenting/liking??
 app.post("/comment", (req, res) => {
@@ -235,13 +244,13 @@ app.get("/photos/:id", (req, res) => {
     // photo's webpage
     // let all users see the photo, the user who posted it, the date
     // it was posted, its comments and the number of likes
-    
+
     // allow logged-in users to comment and like 
     // only let them like if they haven't liked yet
 
     // who posted it
     // SELECT username FROM users JOIN photos ON photos.user_id = users.id AND photos.id = whatever;
-    
+
     // the date it was posted
     // SELECT date_upload FROM photos WHERE id = whatever;
 
@@ -256,7 +265,7 @@ function checkAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
     }
-    
+
     res.render("login", {
         title: "Log in",
         success_message: ""
@@ -267,7 +276,7 @@ function checkNotAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         return res.redirect("/");
     }
-    
+
     next();
 }
 
