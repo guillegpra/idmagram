@@ -2,7 +2,7 @@ const localStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcrypt");
 const { connection } = require("./database-config");
 
-function initialize(passport, getUserByUsername, getUserById) {
+function initialize(passport, /* getUserByUsername, */ getUserById) {
     const authenticateUser = async (username, password, done) => {
 
         const query = 'SELECT * FROM users WHERE username = ?';

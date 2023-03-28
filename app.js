@@ -15,23 +15,23 @@ const { connection } = require("./database-config");
 
 /* --------- Passport --------- */
 const initializePassport = require("./passport-config");
-const { urlencoded } = require("body-parser");
+//const { urlencoded } = require("body-parser");
 initializePassport(
     passport,
-    username => {
-        console.log("getUserByUsername");
-        console.log("username: " + username);
-        const query = 'SELECT * FROM users WHERE username = ?';
-        return connection.query(query, [username], (err, result) => {
-            if (err != null) {
-                console.log("Error performing query: " + err);
-                return null;
-            }
-            console.log("Query result: " + JSON.stringify(result[0]));
-            console.log("sending user with pwd " + result[0].pwd);
-            return result[0];
-        });
-    },
+    // username => {
+    //     console.log("getUserByUsername");
+    //     console.log("username: " + username);
+    //     const query = 'SELECT * FROM users WHERE username = ?';
+    //     return connection.query(query, [username], (err, result) => {
+    //         if (err != null) {
+    //             console.log("Error performing query: " + err);
+    //             return null;
+    //         }
+    //         console.log("Query result: " + JSON.stringify(result[0]));
+    //         console.log("sending user with pwd " + result[0].pwd);
+    //         return result[0];
+    //     });
+    // },
     id => {
         console.log("id: " + id);
         const query = 'SELECT * FROM users WHERE id = "' + id + '";';
@@ -93,10 +93,13 @@ const validationObject = [
 
 /* --------- Register an user --------- */
 app.get("/register", (req, res) => {
+    var title = (req.query.title !== undefined) ? req.query.title : "Create an account";
+    var error_message = (req.query.error_message !== undefined) ? req.query.serror_message: "";
+
     // register webpage
     res.render("register", {
-        title: "Create an account",
-        error_message: ""
+        title: title,
+        error_message: error_message
     });
 });
 
@@ -132,21 +135,22 @@ app.post("/register", urlencodedParser, validationObject, async (req, res) => {
                 console.log(result);
                 console.log("User created");
                 // Inform user and take them to log in page
-                res.render("login", {
-                    title: "Log in",
-                    success_message: "User created successfully! Please log in."
-                });
+                var success_message = encodeURIComponent("User created successfully! Please log in.");
+                res.redirect("login?success_message=" + success_message);
             }
         }
     );
 });
 
 /* --------- Log in --------- */
-app.get("/login", (_req, res) => {
+app.get("/login", (req, res) => {
+    var title = (req.query.title !== undefined) ? req.query.title : "Log in";
+    var success_message = (req.query.success_message !== undefined) ? req.query.success_message: "";
+
     // login webpage
     res.render("login", {
-        title: "Log in",
-        success_message: ""
+        title: title,
+        success_message: success_message
     });
 });
 
@@ -162,10 +166,12 @@ app.get("/logout", (req, res) => {
 });
 
 /* --------- Upload --------- */
-app.get("/upload", async (req, res) => {
+app.get("/upload", (req, res) => {
+    var title = (req.query.title !== undefined) ? req.query.title : "Upload a photo";
+
     // upload photo webpage
     res.render("upload", {
-        title: "Upload a photo"
+        title: title
     });
 });
 
@@ -179,27 +185,36 @@ app.post("/upload", async (req, res) => {
 
         console.log(photo);
 
-        await photo.mv(imageDestinationPath).then(async () => {
-            try {
-                await sharp(imageDestinationPath)
-                    .resize(750)
-                    .toFile(resizedImagePath)
-                    .then(() => {
-                        fs.unlink(imageDestinationPath, function (err) {
-                            if (err) throw err;
-                            console.log(imageDestinationPath + " deleted");
-                        });
-                    });
-            } catch (error) {
-                console.log(error);
-            }
+        // move photo to server
+        await photo.mv(imageDestinationPath);
+        await sharp(imageDestinationPath).resize(750).toFile(resizedImagePath);
+        fs.unlink(imageDestinationPath, function (err) {
+            if (err) throw err;
+            console.log(imageDestinationPath + " deleted");
+        });
 
-            res.render("photo", {
-                title: "Photo",
-                image: "/imgs/resized/" + photo.name,
-                image_name: photo.name,
-                caption: req.body.caption
-            });
+        // TODO: include user_id from session data (maybe move it into the then block)
+        const query = "INSERT INTO photos (caption, alt_text, photo_path) VALUES (?, ?, ?)";
+        connection.query(
+            query,
+            [req.body.caption, req.body.alt_text, "/imgs/resized/" + photo.name],
+            (error, result) => {
+                console.log("Query results: " + result);
+                if (error) {
+                    console.log("Error inserting photo in database: " + error);
+                }
+                else {
+                    console.log(result);
+                    console.log("Photo uploaded");
+                }
+            }
+        );
+
+        res.render("photo", {
+            title: "Photo",
+            image: "/imgs/resized/" + photo.name,
+            image_name: photo.name,
+            caption: req.body.caption
         });
     }
 
@@ -230,6 +245,9 @@ app.post("/like", (req, res) => {
 /* --------- Views --------- */
 app.get("/", (req, res) => {
     // home page
+    res.render("index", {
+        title: "Idmagram"
+    });
 
     // it will allow you to browse the images
     // loop through the photos in the database (we loop on the 
