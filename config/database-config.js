@@ -5,7 +5,7 @@ const connection = mysql.createConnection({
     host: "localhost",
     database: "image_sharing_app",
     user: "root",
-    password: "your_new_password"
+    password: "root"
 });
 
 // const connection = mysql.createConnection({

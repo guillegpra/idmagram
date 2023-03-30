@@ -4,6 +4,10 @@ SET time_zone = "+00:00";
 CREATE DATABASE IF NOT EXISTS image_sharing_app;
 
 USE image_sharing_app;
+DROP TABLE likes;
+DROP TABLE comments;
+DROP TABLE photos;
+DROP TABLE users;
 
 CREATE TABLE users (
     id int(11) NOT NULL AUTO_INCREMENT,
@@ -53,11 +57,11 @@ VALUES (1, 'lewis', 'lewis@tcd.ie', 'lewispwd', 'Hewis Hamilton');
 INSERT INTO users
 VALUES (2, 'anna', 'anna@tcd.ie', 'annapwd', 'Anna Stone');
 
-INSERT INTO photos (id, caption, alt_text, user_id)
-VALUES (1, 'hello', 'photo', 1);
+INSERT INTO photos (id, caption, alt_text, user_id, photo_path)
+VALUES (1, 'hello', 'photo', 1, "hello");
 
-INSERT INTO photos (id, caption, alt_text, user_id)
-VALUES (2, 'hello', 'photo', 1);
+INSERT INTO photos (id, caption, alt_text, user_id, photo_path)
+VALUES (2, 'hello', 'photo', 1, "hello2");
 
 -- SELECT COUNT(id) AS number_comments FROM comments WHERE photo_id = whatever;
 -- SELECT COUNT(id) AS number_likes FROM likes WHERE photo_id = whatever;
