@@ -40,7 +40,7 @@ function checkNotAuthenticated(req, res, next) {
 // Routes
 module.exports = function(app, passport, acceptedTypes) {
     /* --------- Register an user --------- */
-    app.get("/register", (req, res) => {
+    app.get("/register", checkNotAuthenticated, (req, res) => {
         var title = (req.query.title !== undefined) ? req.query.title : "Create an account";
         var error_message = (req.query.error_message !== undefined) ? req.query.serror_message: "";
 
@@ -91,7 +91,7 @@ module.exports = function(app, passport, acceptedTypes) {
     });
 
     /* --------- Log in --------- */
-    app.get("/login", (req, res) => {
+    app.get("/login", checkNotAuthenticated, (req, res) => {
         var title = (req.query.title !== undefined) ? req.query.title : "Log in";
         var success_message = (req.query.success_message !== undefined) ? req.query.success_message: "";
 
@@ -125,12 +125,13 @@ module.exports = function(app, passport, acceptedTypes) {
     });
 
     /* --------- Upload --------- */
-    app.get("/upload", (req, res) => {
+    app.get("/upload", checkAuthenticated, (req, res) => {
         var title = (req.query.title !== undefined) ? req.query.title : "Upload a photo";
 
         // upload photo webpage
         res.render("upload", {
-            title: title
+            title: title,
+            username: req.user.username
         });
     });
 
@@ -152,11 +153,11 @@ module.exports = function(app, passport, acceptedTypes) {
                 console.log(imageDestinationPath + " deleted");
             });
 
-            // TODO: include user_id from session data (maybe move it into the then block)
-            const query = "INSERT INTO photos (caption, alt_text, photo_path) VALUES (?, ?, ?)";
+            // store photo information in database
+            const query = "INSERT INTO photos (caption, alt_text, user_id, photo_path) VALUES (?, ?, ?, ?)";
             connection.query(
                 query,
-                [req.body.caption, req.body.alt_text, "/imgs/resized/" + photo.name],
+                [req.body.caption, req.body.alt_text, req.user.id, "/imgs/resized/" + photo.name],
                 (error, result) => {
                     console.log("Query results: " + result);
                     if (error) {
@@ -173,13 +174,15 @@ module.exports = function(app, passport, acceptedTypes) {
                 title: "Photo",
                 image: "/imgs/resized/" + photo.name,
                 image_name: photo.name,
-                caption: req.body.caption
+                caption: req.body.caption,
+                username: req.user.username
             });
         }
 
         else {
             res.render("upload", {
                 title: "Upload a photo",
+                username: req.user.username,
                 messages: { error: "Please choose an image in the supported formats." },
             });
         }
@@ -196,11 +199,26 @@ module.exports = function(app, passport, acceptedTypes) {
 
     /* --------- Views --------- */
     app.get("/", (req, res) => {
-        console.log("user object: " + req.user);
-        // home page
-        res.render("index", {
-            title: "Idmagram",
-            username: req.user.username,
+        const username = (req.isAuthenticated()) ? req.user.username : null;
+
+        const query =
+            `SELECT photos.id, photos.caption, photos.alt_text, users.username, photos.photo_path, photos.date_upload
+            FROM photos, users
+            WHERE photos.user_id = users.id
+            ORDER BY photos.date_upload DESC`;
+        connection.query(query, (err, result) => {
+            if (err !== null) {
+                console.log("Error performing query: " + err);
+                throw(err);
+            }
+            else {
+                // home page
+                res.render("index", {
+                    title: "Idmagram",
+                    username: username,
+                    photos: result
+                });
+            }
         });
 
         // it will allow you to browse the images

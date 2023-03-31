@@ -68,3 +68,8 @@ VALUES (2, 'hello', 'photo', 1, "hello2");
 -- SELECT COUNT(id) AS number_photos FROM photos WHERE user_id = whatever;
 
 -- SELECT username FROM users JOIN photos ON photos.user_id = users.id AND photos.id = whatever;
+
+-- SELECT ph."creationTime", ph.likes, ph.image, ph."mimeType", u."firstName", u."lastName"
+-- FROM public."Photo" ph, public."User" u
+-- WHERE ph."userID" = u."userID"
+-- ORDER BY ph."creationTime" DESC;

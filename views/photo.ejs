@@ -9,14 +9,14 @@
 
             <div class="photo col-md text-center align-self-center">
                 <%if (locals.image) { %>
-                <img src="<%= image %> " alt="<%= image_name %>" />
+                <img src="<%= image %>" alt="<%= image_name %>" />
                 <% } %>
             </div>
 
             <div class="photo-info col-md text-left align-self-center">
                 <div class="first-line row pl-4">
                     <div class="username col-sm">
-                        <h3>@username</h3>
+                        <h3>@<%= username %></h3>
                     </div>
                     <div class="date col-md-3 text-truncate text-right text-muted align-self-center">
                         date

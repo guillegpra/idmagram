@@ -6,7 +6,6 @@ const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
 const fileUpload = require("express-fileupload");
-const sessionStore = require("./config/sessionstore")(session);
 
 /* --------- Connection to database --------- */
 const { connection } = require("./config/database-config");
@@ -18,7 +17,7 @@ const initializePassport = require("./config/passport-config");
 //const { urlencoded } = require("body-parser");
 
 initializePassport(
-    passport,
+    passport
     // username => {
     //     console.log("getUserByUsername");
     //     console.log("username: " + username);
@@ -33,19 +32,20 @@ initializePassport(
     //         return result[0];
     //     });
     // },
-    id => {
-        console.log("id: " + id);
-        const query = 'SELECT * FROM users WHERE id = "' + id + '";';
-        return connection.query(query, (err, result) => {
-            if (err != null) {
-                console.log("Error performing query: " + err);
-                return;
-            }
+    // id => {
+    //     console.log("id: " + id);
+    //     const query = 'SELECT * FROM users WHERE id = "' + id + '";';
+    //     return connection.query(query, (err, result) => {
+    //         if (err != null) {
+    //             console.log("Error performing query: " + err);
+    //             return;
+    //         }
 
-            console.log("Query result: " + JSON.stringify(result[0]));
-            return result[0];
-        });
-    }
+    //         console.log("Query result: " + JSON.stringify(result[0]));
+    //         console.log("the user with id " + result[0].id + " is " + result[0].username);
+    //         return result[0];
+    //     });
+    // }
 );
 
 /* --------- Express --------- */
@@ -63,14 +63,7 @@ app.use(session({
     secret: "secret",
     resave: false,
     saveUninitialized: false,
-    store: sessionStore
 }));
-
-sessionStore.onReady().then(() => {
-    console.log("MySQLStore ready");
-}).catch(error => {
-    console.error(error);
-});
 
 // passport
 app.use(passport.initialize());

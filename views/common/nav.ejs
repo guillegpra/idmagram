@@ -8,9 +8,10 @@
     </button>
     <div class="collapse navbar-collapse" id="navtab">
         <ul class="navbar-nav ms-auto">
-            <% if (title === "Log in" || title === "Create an account") { %>
+            <% if (title === "Log in" || title === "Create an account" || 
+                (title === "Idmagram" && username === null)) { %>
 
-            <li class="nav-item active">
+            <li class="nav-item">
                 <a href="/login" class="nav-link">Log in</a>
             </li>
 
@@ -25,15 +26,16 @@
             </li>
 
             <li class="nav-item">
-                <a href="" class="nav-link">Profile</a>
+                <form action="/logout" method="post" id="logout"></form>
+                <a onclick="document.getElementById('logout').submit();" class="nav-link">Log out</a>
+            </li>
+
+            <li class="nav-item">
+                <a href="" class="nav-link">@<%= username %></a>
             </li>
 
             <% } %>
 
-            <li class="nav-item active">
-                <form action="/logout" method="post" id="logout"></form>
-                <a onclick="document.getElementById('logout').submit();" class="nav-link">Log out</a>
-            </li>
         </ul>
     </div>
 </nav>
