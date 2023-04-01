@@ -63,6 +63,13 @@ VALUES (1, 'hello', 'photo', 1, "hello");
 INSERT INTO photos (id, caption, alt_text, user_id, photo_path)
 VALUES (2, 'hello', 'photo', 1, "hello2");
 
+INSERT INTO comments (user_id, photo_id, content)
+VALUES (1, 1, 'Such a beautiful photo');
+INSERT INTO comments (user_id, photo_id, content)
+VALUES (2, 1, 'Lorem ipsum');
+INSERT INTO comments (user_id, photo_id, content)
+VALUES (2, 2, 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis, magni. Distinctio omnis hic, aliquam tempore dolores natus delectus quibusdam adipisci facere facilis voluptates, veniam aut doloribus architecto fuga quidem iusto officiis voluptatibus aperiam repellendus dicta, nesciunt nam eveniet. Fugit dolorem ratione sequi tempore adipisci ea? Aut quod illo beatae ipsam cumque, voluptatem mollitia modi tempora, error rem nemo eos officia.');
+
 -- SELECT COUNT(id) AS number_comments FROM comments WHERE photo_id = whatever;
 -- SELECT COUNT(id) AS number_likes FROM likes WHERE photo_id = whatever;
 -- SELECT COUNT(id) AS number_photos FROM photos WHERE user_id = whatever;

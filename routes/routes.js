@@ -37,6 +37,38 @@ function checkNotAuthenticated(req, res, next) {
     next();
 }
 
+function getNumberLikes(photo) {
+    return new Promise(function(resolve, reject) {
+        const q = "SELECT COUNT(id) AS number_likes FROM likes WHERE photo_id = " + photo.id;
+        connection.query(q, (error, response) => {
+            if (error !== null) {
+                console.log("Error performing query: " + error);
+                reject(error);
+            }
+            else {
+                console.log("number " + response[0].number_likes)
+                resolve(response[0].number_likes);
+            }
+        });
+    });
+}
+
+function getComments(photo, callback) {
+    const q = `SELECT comments.content, users.username 
+                FROM comments, users 
+                WHERE comments.user_id = users.id 
+                AND comments.photo_id = ` + photo.id;
+    connection.query(q, (err, response) => {
+        if (err !== null) {
+            console.log("Error performing query: " + err);
+            return;
+        }
+        else {
+            callback(response);
+        }
+    });
+}
+
 // Routes
 module.exports = function(app, passport, acceptedTypes) {
     /* --------- Register an user --------- */
@@ -201,29 +233,82 @@ module.exports = function(app, passport, acceptedTypes) {
     app.get("/", (req, res) => {
         const username = (req.isAuthenticated()) ? req.user.username : null;
 
+        // obtain photos
         const query =
             `SELECT photos.id, photos.caption, photos.alt_text, users.username, photos.photo_path, photos.date_upload
             FROM photos, users
             WHERE photos.user_id = users.id
             ORDER BY photos.date_upload DESC`;
-        connection.query(query, (err, result) => {
+        connection.query(query, (err, photos) => {
             if (err !== null) {
                 console.log("Error performing query: " + err);
-                throw(err);
+                return;
             }
             else {
-                // home page
-                res.render("index", {
-                    title: "Idmagram",
-                    username: username,
-                    photos: result
+                let number_likes = [];
+                let comments = [];
+                
+                // create array of promises for the number of likes of each photo
+                const numberLikesPromises = photos.map(element => {
+                    const q = "SELECT COUNT(id) AS number_likes FROM likes WHERE photo_id = " + element.id;
+                    return new Promise((resolve, reject) => {
+                        connection.query(q, (error, response) => {
+                            if (error !== null) {
+                                console.log("Error performing query: " + error);
+                                reject(error);
+                            }
+                            else {
+                                console.log("number" + response[0].number_likes)
+                                resolve(response[0].number_likes);
+                            }
+                        });
+                    });
                 });
+
+                // create array of promises for the comments of each photo
+                const commentsPromises = photos.map(element => {
+                    const q = `SELECT comments.content, users.username 
+                                FROM comments, users 
+                                WHERE comments.user_id = users.id 
+                                AND comments.photo_id = ` + element.id;
+                    return new Promise((resolve, reject) => {
+                        connection.query(q, (error, response) => {
+                            if (error !== null) {
+                                console.log("Error performing query: " + error);
+                                reject(error);
+                            }
+                            else {
+                                resolve(response);
+                            }
+                        });
+                    });
+                });
+
+                // wait for numberLikesPromises to resolve
+                Promise.all(numberLikesPromises)
+                    .then(results => {
+                        number_likes = results;
+            
+                        // wait for commentsPromises
+                        return Promise.all(commentsPromises);
+                    })
+                    .then(results => {
+                        comments = results;
+                        console.log(number_likes);
+                        console.log(JSON.stringify(comments));
+                        res.render("index", {
+                            title: "Idmagram",
+                            username: username,
+                            photos: photos,
+                            number_likes: number_likes,
+                            comments: comments
+                        });
+                    })
+                    .catch(error => {
+                        console.error(error);
+                    });
             }
         });
-
-        // it will allow you to browse the images
-        // loop through the photos in the database (we loop on the 
-        // EJS template)
     });
 
     app.get("/users/:id", (req, res) => {

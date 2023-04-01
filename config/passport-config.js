@@ -2,7 +2,7 @@ const localStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcrypt");
 const { connection } = require("./database-config");
 
-function initialize(passport, /* getUserByUsername, */ getUserById) {
+function initialize(passport /*, getUserByUsername, getUserById */) {
     const authenticateUser = async (username, password, done) => {
 
         const query = 'SELECT * FROM users WHERE username = ?';
@@ -37,9 +37,18 @@ function initialize(passport, /* getUserByUsername, */ getUserById) {
     };
 
     passport.use(new localStrategy(/* { usernameField: "username" }, */authenticateUser));
-    passport.serializeUser((user, done) => { done(null, user.id) });
+    passport.serializeUser((user, done) => { return done(null, user.id) });
     passport.deserializeUser((id, done) => {
-        return done(null, getUserById(id));
+        const query = 'SELECT * FROM users WHERE id = "' + id + '";';
+        connection.query(query, (err, result) => {
+            if (err != null) {
+                console.log("Error performing query: " + err);
+                return done(err);
+            }
+
+            // console.log("the user with id " + result[0].id + " is " + result[0].username);
+            return done(null, result[0]);
+        });
     });
 
 }
