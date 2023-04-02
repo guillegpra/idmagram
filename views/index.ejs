@@ -21,7 +21,7 @@
                 <div class="photo-content row px-5">
 
                     <div class="photo col-md text-center align-self-center">
-                        <img src="<%= photos[i].photo_path %>" alt="<%= photos[i].alt_text %>" />
+                        <img src="<%= photos[i].photo_path %>" alt="<%= photos[i].alt_text %>" class="img-fluid"/>
                     </div>
         
                     <div class="photo-info col-md text-left align-self-center">
@@ -34,10 +34,15 @@
                             </div>
                         </div>
                         <div class="likes text-left text-primary pl-4">
+                            <form action="/like" method="post">
+                                    <input type="hidden" value="<%= photos[i].id %>" name="photo_id" id="photo_id"/>
+                                    <button type="submit" name="like" value="like">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                                            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+                                        </svg>
+                                    </button>
+                            </form>
                             <!-- TODO: check if user has liked the picture to change icon -->
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                                <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-                            </svg>
                             &nbsp; <%= number_likes[i] %> likes
                         </div>
                         <div class="caption text-left lead pl-4">
@@ -47,21 +52,24 @@
                         d-flex">
                             <h5 class="mx-2">Comments</h5>
 
-                            <% if(comments[i].length === 0) { %> 
-                            <div class="comments overflow-auto mx-2">
-                                No comments yet.
-                            </div>
-                            <% } else { %>
-                                <% comments[i].forEach(comment => { %> 
-                                <div class="comments overflow-auto mx-2">
-                                    <span class="text-primary font-weight-bold">@<%= comment.username %>:</span> <%= comment.content %>
+                            <div class="comments overflow-auto mx-2 mb-3">
+                                <% if(comments[i].length === 0) { %> 
+                                <div class="comment">
+                                    No comments yet.
                                 </div>
-                                <% }) %>
-                            <% } %> 
+                                <% } else { %>
+                                    <% comments[i].forEach(comment => { %> 
+                                    <div class="comment">
+                                        <span class="text-primary font-weight-bold">@<%= comment.username %>:</span> <%= comment.content %>
+                                    </div>
+                                    <% }) %>
+                                <% } %> 
+                            </div>
 
                             <% if (username !== null) { %> 
                             <form action="/comment" method="post" class="d-flex flex-wrap justify-content-center mt-auto mb-2 mx-2">
                                 <div class="input-group">
+                                    <input type="hidden" value="<%= photos[i].id %>" name="photo_id" id="photo_id"/>
                                     <input type="text" class="form-control" name="comment" id="comment" placeholder="Add a comment">
                                     <button type="submit" class="btn btn-primary py-2">Post</button>
                                 </div>

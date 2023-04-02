@@ -1,5 +1,3 @@
-// const express = require("express");
-// const router = express.Router();
 const bodyParser = require("body-parser");
 const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
@@ -37,41 +35,9 @@ function checkNotAuthenticated(req, res, next) {
     next();
 }
 
-function getNumberLikes(photo) {
-    return new Promise(function(resolve, reject) {
-        const q = "SELECT COUNT(id) AS number_likes FROM likes WHERE photo_id = " + photo.id;
-        connection.query(q, (error, response) => {
-            if (error !== null) {
-                console.log("Error performing query: " + error);
-                reject(error);
-            }
-            else {
-                console.log("number " + response[0].number_likes)
-                resolve(response[0].number_likes);
-            }
-        });
-    });
-}
-
-function getComments(photo, callback) {
-    const q = `SELECT comments.content, users.username 
-                FROM comments, users 
-                WHERE comments.user_id = users.id 
-                AND comments.photo_id = ` + photo.id;
-    connection.query(q, (err, response) => {
-        if (err !== null) {
-            console.log("Error performing query: " + err);
-            return;
-        }
-        else {
-            callback(response);
-        }
-    });
-}
-
 // Routes
 module.exports = function(app, passport, acceptedTypes) {
-    /* --------- Register an user --------- */
+    /* ------------------ Register an user ------------------ */
     app.get("/register", checkNotAuthenticated, (req, res) => {
         var title = (req.query.title !== undefined) ? req.query.title : "Create an account";
         var error_message = (req.query.error_message !== undefined) ? req.query.serror_message: "";
@@ -122,7 +88,7 @@ module.exports = function(app, passport, acceptedTypes) {
         );
     });
 
-    /* --------- Log in --------- */
+    /* ------------------ Log in ------------------ */
     app.get("/login", checkNotAuthenticated, (req, res) => {
         var title = (req.query.title !== undefined) ? req.query.title : "Log in";
         var success_message = (req.query.success_message !== undefined) ? req.query.success_message: "";
@@ -140,23 +106,23 @@ module.exports = function(app, passport, acceptedTypes) {
         failureFlash: true
     }));
 
-    /* --------- Log out --------- */
+    /* ------------------ Log out ------------------ */
     app.post("/logout", checkAuthenticated, (req, res) => {
-        // logout webpage
         req.logout(err => {
             if (err) {
                 console.log(err);
                 return;
             }
             console.log("Logged out correctly");
+            // redirect to log-in page
             res.render("login", {
                 title: "Log in",
-                success_message: ""
+                success_message: "Logged out correctly. Log in again to comment and like pictures."
             });
         });
     });
 
-    /* --------- Upload --------- */
+    /* ------------------ Upload ------------------ */
     app.get("/upload", checkAuthenticated, (req, res) => {
         var title = (req.query.title !== undefined) ? req.query.title : "Upload a photo";
 
@@ -167,6 +133,7 @@ module.exports = function(app, passport, acceptedTypes) {
         });
     });
 
+    /* ------------------ Upload a picture ------------------ */
     app.post("/upload", async (req, res) => {
         // upload photo routine
         const photo = req.files.photo;
@@ -220,13 +187,54 @@ module.exports = function(app, passport, acceptedTypes) {
         }
     });
 
-    // maybe routines for commenting/liking??
-    app.post("/comment", (req, res) => {
+    /* ------------------ Comment a photo ------------------ */
+    app.post("/comment", checkAuthenticated, (req, res) => {
         // comment routine
+        const query = "INSERT INTO comments (user_id, photo_id, content) VALUES (?, ?, ?)"
+        connection.query(query, [req.user.id, req.body.photo_id, req.body.comment], (err, _result) => {
+            if (err) {
+                console.log("Error performing query: " + err);
+                return;
+            }
+
+            res.redirect("/");
+        });
     });
 
-    app.post("/like", (req, res) => {
-        // like routine
+    /* ------------------ Like a photo ------------------ */
+    app.post("/like", checkAuthenticated, (req, res) => {
+        // check if user has liked the picture 
+        const query = "SELECT user_id FROM likes WHERE photo_id = " + req.body.photo_id;
+        connection.query(query, (err, result) => {
+            if (err) {
+                console.log("Error performing query: " + err);
+                return;
+            }
+
+            // search in array
+            var found = false; var i = 0;
+            while (i < result.length && !found) {
+                found = (result[i].user_id === req.user.id);
+                i++;
+            }
+
+            if (found) {
+                console.log("You have already liked this picture");
+            }
+            else { // the user hasn't liked the picture yet
+                // store like in database
+                const q = "INSERT INTO likes (user_id, photo_id) VALUES (?, ?)";
+                connection.query(q, [req.user.id, req.body.photo_id], (error, _result) => {
+                    if (error) {
+                        console.log("Error performing query: " + error);
+                        return;
+                    }
+                });
+            }
+
+            res.redirect("/");
+        });
+        
     });
 
     /* --------- Views --------- */
@@ -267,10 +275,12 @@ module.exports = function(app, passport, acceptedTypes) {
 
                 // create array of promises for the comments of each photo
                 const commentsPromises = photos.map(element => {
-                    const q = `SELECT comments.content, users.username 
-                                FROM comments, users 
-                                WHERE comments.user_id = users.id 
-                                AND comments.photo_id = ` + element.id;
+                    const q = 
+                        `SELECT comments.content, users.username 
+                        FROM comments, users 
+                        WHERE comments.user_id = users.id 
+                        AND comments.photo_id = ${element.id}
+                        ORDER BY comments.date_upload ASC`;
                     return new Promise((resolve, reject) => {
                         connection.query(q, (error, response) => {
                             if (error !== null) {
