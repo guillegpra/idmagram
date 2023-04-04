@@ -10893,6 +10893,15 @@ x .navbar {
   margin-top: -5px;
 }
 
+.photo-info .likes .like-btn {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font: inherit;
+  outline: inherit;
+}
+
 .photo-info .comments-card {
   height: 250px;
 }

@@ -1,7 +1,7 @@
 const express = require("express");
 // const mysql = require("mysql");
 const router = require("./routes/routes");
-const bcrypt = require("bcrypt");
+// const bcrypt = require("bcrypt");
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
@@ -14,7 +14,6 @@ const PORT = 8000;
 
 /* --------- Passport --------- */
 const initializePassport = require("./config/passport-config");
-//const { urlencoded } = require("body-parser");
 
 initializePassport(
     passport
@@ -52,7 +51,6 @@ initializePassport(
 const app = express();
 
 app.set("view engine", "ejs");
-// app.set("views", "pages");
 
 app.use(express.static('static')); // for static content
 

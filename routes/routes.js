@@ -23,7 +23,8 @@ function checkAuthenticated(req, res, next) {
 
     res.render("login", {
         title: "Log in",
-        success_message: ""
+        success_message: "",
+        messages: { error: "Please log in to like or comment a photo." }
     });
 }
 
@@ -78,7 +79,6 @@ module.exports = function(app, passport, acceptedTypes) {
                     });
                 }
                 else {
-                    console.log(result);
                     console.log("User created");
                     // Inform user and take them to log in page
                     var success_message = encodeURIComponent("User created successfully! Please log in.");
@@ -113,6 +113,7 @@ module.exports = function(app, passport, acceptedTypes) {
                 console.log(err);
                 return;
             }
+
             console.log("Logged out correctly");
             // redirect to log-in page
             res.render("login", {
@@ -142,8 +143,6 @@ module.exports = function(app, passport, acceptedTypes) {
             const imageDestinationPath = "static/imgs/" + photo.name;
             const resizedImagePath = "static/imgs/resized/" + photo.name;
 
-            console.log(photo);
-
             // move photo to server
             await photo.mv(imageDestinationPath);
             await sharp(imageDestinationPath).resize(750).toFile(resizedImagePath);
@@ -169,13 +168,14 @@ module.exports = function(app, passport, acceptedTypes) {
                 }
             );
 
-            res.render("photo", {
-                title: "Photo",
-                image: "/imgs/resized/" + photo.name,
-                image_name: photo.name,
-                caption: req.body.caption,
-                username: req.user.username
-            });
+            // res.render("photo", {
+            //     title: "Photo",
+            //     image: "/imgs/resized/" + photo.name,
+            //     image_name: photo.name,
+            //     caption: req.body.caption,
+            //     username: req.user.username
+            // });
+            res.redirect("/");
         }
 
         else {
@@ -220,6 +220,13 @@ module.exports = function(app, passport, acceptedTypes) {
 
             if (found) {
                 console.log("You have already liked this picture");
+                const q = `DELETE FROM likes WHERE user_id = ${req.user.id} AND photo_id = ${req.body.photo_id}`;
+                connection.query(q, (error, _result) => {
+                    if (error) {
+                        console.log("Error performing query: " + error);
+                        return;
+                    }
+                });
             }
             else { // the user hasn't liked the picture yet
                 // store like in database
@@ -253,8 +260,9 @@ module.exports = function(app, passport, acceptedTypes) {
                 return;
             }
             else {
-                let number_likes = [];
-                let comments = [];
+                let number_likes = []; // number of likes of each photo
+                let liked = []; // boolean to check if the user has liked each photo
+                let comments = []; // comments on each photo
                 
                 // create array of promises for the number of likes of each photo
                 const numberLikesPromises = photos.map(element => {
@@ -268,6 +276,34 @@ module.exports = function(app, passport, acceptedTypes) {
                             else {
                                 console.log("number" + response[0].number_likes)
                                 resolve(response[0].number_likes);
+                            }
+                        });
+                    });
+                });
+
+                // create array of promises to check if the logged-in user has liked each photo
+                const likedPromises = photos.map(element => {
+                    const q = "SELECT user_id FROM likes WHERE photo_id = " + element.id;
+                    return new Promise((resolve, reject) => {
+                        connection.query(q, (error, response) => {
+                            if (error !== null) {
+                                console.log("Error performing query: " + error);
+                                reject(error);
+                            }
+                            else {
+                                if (!req.isAuthenticated()) {
+                                    resolve(false); // if the user isn't logged-in, we store false
+                                }
+                                else {
+                                    // search in array
+                                    var found = false; var i = 0;
+                                    while (i < response.length && !found) {
+                                        found = (response[i].user_id === req.user.id);
+                                        i++;
+                                    }
+                                    resolve(found); // store if the user has liked that photo
+                                }
+                                
                             }
                         });
                     });
@@ -299,18 +335,26 @@ module.exports = function(app, passport, acceptedTypes) {
                     .then(results => {
                         number_likes = results;
             
+                        // wait for likedPromises
+                        return Promise.all(likedPromises);
+                    })
+                    .then(results => {
+                        liked = results;
+                        console.log(liked);
+
                         // wait for commentsPromises
                         return Promise.all(commentsPromises);
                     })
                     .then(results => {
                         comments = results;
-                        console.log(number_likes);
-                        console.log(JSON.stringify(comments));
+                        
+                        // show index.ejs page
                         res.render("index", {
                             title: "Idmagram",
                             username: username,
                             photos: photos,
                             number_likes: number_likes,
+                            liked: liked,
                             comments: comments
                         });
                     })
