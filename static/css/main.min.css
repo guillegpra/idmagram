@@ -10819,8 +10819,30 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
-x .navbar {
+* {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+h1, .h1 {
+  font-weight: 800;
+}
+
+h3, .h3, h5, .h5 {
+  font-weight: 600;
+}
+
+.btn {
+  font-weight: 600;
+}
+
+/* --------- Navbar --------- */
+.navbar {
   margin-bottom: 0px;
+}
+
+.navbar .logo {
+  font-family: "Urbanist", Arial, Helvetica, sans-serif;
+  font-weight: 500;
 }
 
 /* --------- Footer --------- */
@@ -10835,7 +10857,7 @@ x .navbar {
 
 /* --------- Login ---------*/
 .login {
-  width: 50%;
+  width: 55%;
 }
 
 .login h1, .login .h1 {
@@ -10849,7 +10871,7 @@ x .navbar {
 
 /* --------- Register ---------*/
 .register {
-  width: 50%;
+  width: 55%;
   max-height: 100%;
   height: calc(100% - 100px);
 }
@@ -10873,7 +10895,7 @@ x .navbar {
 
 /* --------- Register ---------*/
 .upload {
-  width: 50%;
+  width: 55%;
 }
 
 .upload h1, .upload .h1 {
@@ -10881,6 +10903,10 @@ x .navbar {
 }
 
 /* --------- Photo ---------*/
+.photos-section {
+  margin-top: -30px;
+}
+
 .photo-content {
   margin-top: 80px;
   margin-bottom: 25px;
@@ -10891,6 +10917,7 @@ x .navbar {
 } */
 .photo-info .likes {
   margin-top: -5px;
+  font-weight: 600;
 }
 
 .photo-info .likes .like-btn {
@@ -10904,6 +10931,14 @@ x .navbar {
 
 .photo-info .comments-card {
   height: 250px;
+}
+
+.photo-info .comment .user-comment {
+  font-weight: 600;
+}
+
+.photo-info .comment .comment-date {
+  font-size: 12px;
 }
 
 /* --------- Terms & FAQs ---------*/

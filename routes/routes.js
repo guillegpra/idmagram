@@ -226,6 +226,8 @@ module.exports = function(app, passport, acceptedTypes) {
                         console.log("Error performing query: " + error);
                         return;
                     }
+
+                    res.json({ success: true, message: "Like removed" });
                 });
             }
             else { // the user hasn't liked the picture yet
@@ -236,10 +238,12 @@ module.exports = function(app, passport, acceptedTypes) {
                         console.log("Error performing query: " + error);
                         return;
                     }
+
+                    res.json({ success: true, message: "Like added" });
                 });
             }
 
-            res.redirect("/");
+            // res.redirect("/");
         });
         
     });
@@ -312,7 +316,7 @@ module.exports = function(app, passport, acceptedTypes) {
                 // create array of promises for the comments of each photo
                 const commentsPromises = photos.map(element => {
                     const q = 
-                        `SELECT comments.content, users.username 
+                        `SELECT comments.content, comments.date_upload, users.username 
                         FROM comments, users 
                         WHERE comments.user_id = users.id 
                         AND comments.photo_id = ${element.id}

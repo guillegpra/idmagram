@@ -10,14 +10,14 @@
 
             <% if (username !== null) { %> 
 
-            <h3 class="mt-3">Hi @<%= username %>!</h3>
+            <h3 class="mt-1">Hi @<%= username %>!</h3>
             <p class="description lead">Upload your own photo <a href="/upload">here</a>.</p>
 
             <% } %>
         </div>
 
         <% for (var i = 0; i < photos.length; i++) { %>
-            <section>
+            <section class="photos-section">
                 <div class="photo-content row px-5">
 
                     <div class="photo col-md text-center align-self-center">
@@ -30,13 +30,20 @@
                             <div class="username col-sm">
                                 <h3>@<%= photos[i].username %></h3>
                             </div>
-                            <div class="date col-md-5 text-truncate text-right text-muted align-self-center">
-                                <%= photos[i].date_upload %>
+                            <div class="date col-md-3 text-truncate text-right text-muted align-self-center">
+                                <% const date = new Date(photos[i].date_upload);
+                                   const formattedDate = ("0" + date.getDate()).slice(-2) + "/"
+                                        + ("0" + (date.getMonth() + 1)).slice(-2) + "/"
+                                        + date.getFullYear().toString().substr(-2) + " "
+                                        + ("0" + date.getHours()).slice(-2) + ":"
+                                        + ("0" + date.getMinutes()).slice(-2); %>
+                                           
+                                <%= formattedDate %>
                             </div>
                         </div>
 
                         <div class="likes text-left text-primary pl-4">
-                            <form action="/like" method="post">
+                            <form action="/like" method="post" id="like-form">
                                 <input type="hidden" value="<%= photos[i].id %>" name="photo_id" id="photo_id"/>
                                 <button class="like-btn" type="submit" name="like" value="like">
                                     <% if (liked[i]) { %>
@@ -48,7 +55,7 @@
                                         <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
                                     </svg>
                                     <% } %>
-                                </button> &nbsp; <%= number_likes[i] %> likes
+                                </button> &nbsp;  <span class="num-likes"><%= number_likes[i] %></span> likes
                             </form>
                         </div>
 
@@ -60,14 +67,26 @@
                             <h5 class="mx-2">Comments</h5>
 
                             <div class="comments overflow-auto mx-2 mb-3">
-                                <% if(comments[i].length === 0) { %> 
+                                <% if (comments[i].length === 0) { %> 
                                 <div class="comment">
                                     No comments yet.
                                 </div>
                                 <% } else { %>
                                     <% comments[i].forEach(comment => { %> 
                                     <div class="comment">
-                                        <span class="text-primary font-weight-bold">@<%= comment.username %>:</span> <%= comment.content %>
+                                        <div class="comment-content">
+                                            <span class="user-comment text-primary">@<%= comment.username %>:</span> <%= comment.content %>
+                                        </div>
+                                        <div class="comment-date small text-muted align-self-center">
+                                            <% const date = new Date(comment.date_upload);
+                                               const formattedDate = ("0" + date.getDate()).slice(-2) + "/"
+                                                    + ("0" + (date.getMonth() + 1)).slice(-2) + "/"
+                                                    + date.getFullYear().toString().substr(-2) + " "
+                                                    + ("0" + date.getHours()).slice(-2) + ":"
+                                                    + ("0" + date.getMinutes()).slice(-2); %>
+                                           
+                                            <%= formattedDate %>
+                                        </div>
                                     </div>
                                     <% }) %>
                                 <% } %> 
@@ -77,7 +96,7 @@
                             <form action="/comment" method="post" class="d-flex flex-wrap justify-content-center mt-auto mb-2 mx-2">
                                 <div class="input-group">
                                     <input type="hidden" value="<%= photos[i].id %>" name="photo_id" id="photo_id"/>
-                                    <input type="text" class="form-control" name="comment" id="comment" placeholder="Add a comment">
+                                    <input type="text" class="form-control rounded" name="comment" id="comment" placeholder="Add a comment">
                                     <button type="submit" class="btn btn-primary py-2">Post</button>
                                 </div>
                             </form>
