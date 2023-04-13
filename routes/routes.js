@@ -15,7 +15,7 @@ const validationObject = [
     check("password").trim().escape()
 ];
 
-// Auxiliary
+// Auxiliary passport functions
 function checkAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {
         return next();
@@ -37,11 +37,11 @@ function checkNotAuthenticated(req, res, next) {
 }
 
 // Routes
-module.exports = function(app, passport, acceptedTypes) {
+module.exports = function (app, passport, acceptedTypes) {
     /* ------------------ Register an user ------------------ */
     app.get("/register", checkNotAuthenticated, (req, res) => {
         var title = (req.query.title !== undefined) ? req.query.title : "Create an account";
-        var error_message = (req.query.error_message !== undefined) ? req.query.serror_message: "";
+        var error_message = (req.query.error_message !== undefined) ? req.query.serror_message : "";
 
         // register webpage
         res.render("register", {
@@ -69,9 +69,9 @@ module.exports = function(app, passport, acceptedTypes) {
             query,
             [req.body.username, req.body.email, hashedPassword, req.body.full_name],
             (err, result) => {
-                console.log("Query results: " + result);
                 if (err) {
                     console.log("Error performing query: " + err);
+
                     // Inform user and let them try again
                     res.render("register", {
                         title: "Create an account",
@@ -80,6 +80,7 @@ module.exports = function(app, passport, acceptedTypes) {
                 }
                 else {
                     console.log("User created");
+
                     // Inform user and take them to log in page
                     var success_message = encodeURIComponent("User created successfully! Please log in.");
                     res.redirect("login?success_message=" + success_message);
@@ -91,7 +92,7 @@ module.exports = function(app, passport, acceptedTypes) {
     /* ------------------ Log in ------------------ */
     app.get("/login", checkNotAuthenticated, (req, res) => {
         var title = (req.query.title !== undefined) ? req.query.title : "Log in";
-        var success_message = (req.query.success_message !== undefined) ? req.query.success_message: "";
+        var success_message = (req.query.success_message !== undefined) ? req.query.success_message : "";
 
         // login webpage
         res.render("login", {
@@ -123,7 +124,7 @@ module.exports = function(app, passport, acceptedTypes) {
         });
     });
 
-    /* ------------------ Upload ------------------ */
+    /* ------------------ Upload a picture ------------------ */
     app.get("/upload", checkAuthenticated, (req, res) => {
         var title = (req.query.title !== undefined) ? req.query.title : "Upload a photo";
 
@@ -134,7 +135,6 @@ module.exports = function(app, passport, acceptedTypes) {
         });
     });
 
-    /* ------------------ Upload a picture ------------------ */
     app.post("/upload", async (req, res) => {
         // upload photo routine
         const photo = req.files.photo;
@@ -157,28 +157,20 @@ module.exports = function(app, passport, acceptedTypes) {
                 query,
                 [req.body.caption, req.body.alt_text, req.user.id, "/imgs/resized/" + photo.name],
                 (error, result) => {
-                    console.log("Query results: " + result);
                     if (error) {
                         console.log("Error inserting photo in database: " + error);
                     }
                     else {
-                        console.log(result);
                         console.log("Photo uploaded");
                     }
                 }
             );
 
-            // res.render("photo", {
-            //     title: "Photo",
-            //     image: "/imgs/resized/" + photo.name,
-            //     image_name: photo.name,
-            //     caption: req.body.caption,
-            //     username: req.user.username
-            // });
-            res.redirect("/");
+            res.redirect("/"); // take them to homepage, where their photo will be posted
         }
 
-        else {
+        else { // not an accepted format
+            // reload the page and inform the user
             res.render("upload", {
                 title: "Upload a photo",
                 username: req.user.username,
@@ -197,7 +189,13 @@ module.exports = function(app, passport, acceptedTypes) {
                 return;
             }
 
-            res.redirect("/");
+            // send json to update the page accordingly
+            res.json({
+                success: true,
+                message: "Comment added",
+                username: req.user.username,
+                content: req.body.comment
+            });
         });
     });
 
@@ -211,7 +209,7 @@ module.exports = function(app, passport, acceptedTypes) {
                 return;
             }
 
-            // search in array
+            // search in the resulting array
             var found = false; var i = 0;
             while (i < result.length && !found) {
                 found = (result[i].user_id === req.user.id);
@@ -219,7 +217,7 @@ module.exports = function(app, passport, acceptedTypes) {
             }
 
             if (found) {
-                console.log("You have already liked this picture");
+                // remove like from database
                 const q = `DELETE FROM likes WHERE user_id = ${req.user.id} AND photo_id = ${req.body.photo_id}`;
                 connection.query(q, (error, _result) => {
                     if (error) {
@@ -227,6 +225,7 @@ module.exports = function(app, passport, acceptedTypes) {
                         return;
                     }
 
+                    // inform the user that the like has been removed
                     res.json({ success: true, message: "Like removed" });
                 });
             }
@@ -239,16 +238,16 @@ module.exports = function(app, passport, acceptedTypes) {
                         return;
                     }
 
+                    // inform the user that the like has been added
                     res.json({ success: true, message: "Like added" });
                 });
             }
 
-            // res.redirect("/");
         });
-        
+
     });
 
-    /* --------- Views --------- */
+    /* ------------------ Homepage ------------------ */
     app.get("/", (req, res) => {
         const username = (req.isAuthenticated()) ? req.user.username : null;
 
@@ -267,7 +266,7 @@ module.exports = function(app, passport, acceptedTypes) {
                 let number_likes = []; // number of likes of each photo
                 let liked = []; // boolean to check if the user has liked each photo
                 let comments = []; // comments on each photo
-                
+
                 // create array of promises for the number of likes of each photo
                 const numberLikesPromises = photos.map(element => {
                     const q = "SELECT COUNT(id) AS number_likes FROM likes WHERE photo_id = " + element.id;
@@ -307,7 +306,7 @@ module.exports = function(app, passport, acceptedTypes) {
                                     }
                                     resolve(found); // store if the user has liked that photo
                                 }
-                                
+
                             }
                         });
                     });
@@ -315,7 +314,7 @@ module.exports = function(app, passport, acceptedTypes) {
 
                 // create array of promises for the comments of each photo
                 const commentsPromises = photos.map(element => {
-                    const q = 
+                    const q =
                         `SELECT comments.content, comments.date_upload, users.username 
                         FROM comments, users 
                         WHERE comments.user_id = users.id 
@@ -338,7 +337,7 @@ module.exports = function(app, passport, acceptedTypes) {
                 Promise.all(numberLikesPromises)
                     .then(results => {
                         number_likes = results;
-            
+
                         // wait for likedPromises
                         return Promise.all(likedPromises);
                     })
@@ -351,7 +350,7 @@ module.exports = function(app, passport, acceptedTypes) {
                     })
                     .then(results => {
                         comments = results;
-                        
+
                         // show index.ejs page
                         res.render("index", {
                             title: "Idmagram",
@@ -369,28 +368,4 @@ module.exports = function(app, passport, acceptedTypes) {
         });
     });
 
-    app.get("/users/:id", (req, res) => {
-        // user's page (not needed)
-    });
-
-    app.get("/photos/:id", (req, res) => {
-        // photo's webpage
-        // let all users see the photo, the user who posted it, the date
-        // it was posted, its comments and the number of likes
-
-        // allow logged-in users to comment and like 
-        // only let them like if they haven't liked yet
-
-        // who posted it
-        // SELECT username FROM users JOIN photos ON photos.user_id = users.id AND photos.id = whatever;
-
-        // the date it was posted
-        // SELECT date_upload FROM photos WHERE id = whatever;
-
-        // the number of likes
-        // SELECT COUNT(id) AS number_likes FROM likes WHERE photo_id = whatever;
-
-        // the number of comments
-        // SELECT COUNT(id) AS number_comments FROM comments WHERE photo_id = whatever;
-    });
 }

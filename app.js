@@ -1,7 +1,5 @@
 const express = require("express");
-// const mysql = require("mysql");
 const router = require("./routes/routes");
-// const bcrypt = require("bcrypt");
 const passport = require("passport");
 const flash = require("express-flash");
 const session = require("express-session");
@@ -15,37 +13,7 @@ const PORT = 8000;
 /* --------- Passport --------- */
 const initializePassport = require("./config/passport-config");
 
-initializePassport(
-    passport
-    // username => {
-    //     console.log("getUserByUsername");
-    //     console.log("username: " + username);
-    //     const query = 'SELECT * FROM users WHERE username = ?';
-    //     return connection.query(query, [username], (err, result) => {
-    //         if (err != null) {
-    //             console.log("Error performing query: " + err);
-    //             return null;
-    //         }
-    //         console.log("Query result: " + JSON.stringify(result[0]));
-    //         console.log("sending user with pwd " + result[0].pwd);
-    //         return result[0];
-    //     });
-    // },
-    // id => {
-    //     console.log("id: " + id);
-    //     const query = 'SELECT * FROM users WHERE id = "' + id + '";';
-    //     return connection.query(query, (err, result) => {
-    //         if (err != null) {
-    //             console.log("Error performing query: " + err);
-    //             return;
-    //         }
-
-    //         console.log("Query result: " + JSON.stringify(result[0]));
-    //         console.log("the user with id " + result[0].id + " is " + result[0].username);
-    //         return result[0];
-    //     });
-    // }
-);
+initializePassport(passport);
 
 /* --------- Express --------- */
 const app = express();

@@ -1,15 +1,17 @@
-$(document).ready(function() {
-    $(document).on('submit', '#like-form', function(event) {
+$(document).ready(function () {
+
+    // handle likes
+    $(document).on('submit', '#like-form', function (event) {
         event.preventDefault();
         var heartIcon = $(this).find('.like-btn').find('svg');
         var numLikes = $(this).find('.num-likes');
 
         $.ajax({
-            url:'/like',
+            url: '/like',
             data: $(this).serialize(),
             type: 'post',
             dataType: 'JSON',
-            success: function(data) {
+            success: function (data) {
                 console.log(data.message);
 
                 // toggle heart icon
@@ -25,7 +27,61 @@ $(document).ready(function() {
                     numLikes.text(parseInt(numLikes.text()) - 1);
                 }
             },
-            error: function(error) {
+            error: function (error) {
+                console.log(error);
+            }
+        });
+    });
+
+    // handle comments
+    $(document).on('submit', '#comment-form', function (event) {
+        event.preventDefault();
+        var form = $(this);
+
+        $.ajax({
+            url: '/comment',
+            data: $(this).serialize(),
+            type: 'post',
+            dataType: 'JSON',
+            success: function (data) {
+
+                // obtain current date in DD/MM/YY HH:mm format
+                var date = new Date();
+                var formattedDate = ("0" + date.getDate()).slice(-2) + "/"
+                    + ("0" + (date.getMonth() + 1)).slice(-2) + "/"
+                    + date.getFullYear().toString().substr(-2) + " "
+                    + ("0" + date.getHours()).slice(-2) + ":"
+                    + ("0" + date.getMinutes()).slice(-2);
+
+                // create div with comment
+                var commentDiv = $('<div/>', {
+                    class: 'comment'
+                }).append(
+                    $('<div/>', {
+                        class: 'comment-content'
+                    }).append(
+                        $('<span/>', {
+                            class: 'user-comment text-primary',
+                            text: '@' + data.username + ': '
+                        }),
+                        $('<span/>', {
+                            text: data.content
+                        })
+                    ),
+                    $('<div/>', {
+                        class: 'comment-date small text-muted align-self-center',
+                        text: formattedDate
+                    })
+                );
+
+                form.prev().find('.no-comments').remove(); // remove previous comment if it is the first one
+
+                var comments = form.prev('.comments');
+                comments.append(commentDiv); // add comment to div
+                comments.scrollTop(comments.prop('scrollHeight')); // scroll down
+                form.find('#comment').val(''); // clear input field
+            },
+            error: function (error) {
                 console.log(error);
             }
         });
